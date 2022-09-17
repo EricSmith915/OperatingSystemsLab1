@@ -669,9 +669,10 @@ procinfo(struct uproc* uproc){
   [ZOMBIE]    "zombie"
   };
 
-
+  struct uproc[NPROC] returnproc;
   struct proc *p;
-  struct uproc *up = uproc;
+  struct uproc *up = returnproc;
+  struct uproc *it = uproc;
   int counter = 0;
   int pass = 0;
 
@@ -686,29 +687,18 @@ procinfo(struct uproc* uproc){
     if(p->state >= 0 && p->state < NELEM(states) && states[p->state]){
       //Temp variable to keep track of parent proc
       struct proc* parent = (p->parent);
+      up.pid = p->pid;
+      up.state = p->state;
+      up.size = p->size;
+      up.name = p->name;
 
       //Series of copy out statements which will copy out pid, state, size, ppid, and name to user space.
-      if(copyout(scproc->pagetable, (uint64)&up->pid, (char*)&p->pid, sizeof(p->pid) < 0)){
+      if(copyout(scproc->pagetable, (uint64)&it, (char*)&up, sizeof(up) < 0)){
         printf("PID failed\n");
         return -1;
       }
-      if(copyout(scproc->pagetable, (uint64)&up->state, (char*)&p->state, sizeof(p->state)) < 0){
-        printf("state failed\n");
-        return -1;
-      }
-      if (copyout(scproc->pagetable, (uint64)&up->size, (char*)&p->sz, sizeof(p->sz)) < 0){
-        printf("Size failed\n");
-        return -1;
-      }
-      if (copyout(scproc->pagetable, (uint64)&up->ppid, (char*)&parent->pid, sizeof(parent->pid)) < 0){
-        printf("PPID failed\n");
-        return -1;
-      }
-      if (copyout(scproc->pagetable, (uint64)&up->name, (char*)&p->name, sizeof(p->name)) < 0){
-        printf("Name failed\n");
-        return -1;
-      }
       up++;
+      iter++;
     } 
     pass++;
   }
