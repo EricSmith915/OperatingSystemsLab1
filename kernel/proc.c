@@ -669,12 +669,11 @@ procinfo(struct uproc* uproc){
   [ZOMBIE]    "zombie"
   };
 
-  struct uproc[NPROC] returnproc;
+  struct uproc returnproc[NPROC];
   struct proc *p;
   struct uproc *up = returnproc;
   struct uproc *it = uproc;
   int counter = 0;
-  int pass = 0;
 
   //Initialization of value which will be used for pagetable in copyout
   struct proc* scproc = myproc();
@@ -687,18 +686,32 @@ procinfo(struct uproc* uproc){
     if(p->state >= 0 && p->state < NELEM(states) && states[p->state]){
       //Temp variable to keep track of parent proc
       struct proc* parent = (p->parent);
-      up.pid = p->pid;
-      up.state = p->state;
-      up.size = p->size;
-      up.name = p->name;
+
+      printf("Start assignment");
+
+      struct uproc tempproc;
+
+      if(counter == 0){
+        tempproc.pid = p->pid;
+        tempproc.size = p->sz;
+        tempproc.state = p->state;
+      }
+      else{
+        tempproc.pid = p->pid;
+        tempproc.size = p->sz;
+        tempproc.state = p->state;
+        tempproc.pid = parent->pid;
+      }
+
+      printf("Assignment done");
 
       //Series of copy out statements which will copy out pid, state, size, ppid, and name to user space.
-      if(copyout(scproc->pagetable, (uint64)&it, (char*)&up, sizeof(up) < 0)){
+      if(copyout(scproc->pagetable, (uint64)&it, (char*)&tempproc, sizeof(tempproc) < 0)){
         printf("PID failed\n");
         return -1;
       }
       up++;
-      iter++;
+      it++;
       counter++;
     } 
   }
