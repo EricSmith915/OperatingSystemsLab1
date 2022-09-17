@@ -699,8 +699,8 @@ procinfo(struct uproc* uproc){
       }
       up++;
       iter++;
+      counter++;
     } 
-    pass++;
   }
   return counter;
 }
